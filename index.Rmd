@@ -125,7 +125,7 @@ b %>%
   group_by(Var1) %>%
   plot_ly(labels = ~ Var1, values = ~Freq, textposition = "inside") %>%
   add_pie(hole = 0.6) %>%
-  layout(title = "Donus Chatrt of total numbe cases outside of China")
+  layout(title = "Donut Chart of total numbe cases outside of China")
         
 ```
 
