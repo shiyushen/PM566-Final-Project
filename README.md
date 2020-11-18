@@ -1,3 +1,3 @@
 My PM566 Final Project Website
 
-The website can be seen at https://github.com/shiyushen/PM566-Final-Project/blob/master/index.html
+The website can be seen at https://shiyushen.github.io/PM566-Final-Project/
