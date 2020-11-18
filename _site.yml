@@ -1,10 +1,15 @@
-name: "my-website"
+name: "PM566 Final Project"
 output_dir: "."
 navbar:
   title: "PM566 Final Project"
   left:
     - text: "Home"
       href: index.html
+    - text: "Data"
+      href: https://docs.google.com/spreadsheets/u/1/d/e/2PACX-1vQU0SIALScXx8VXDX7yKNKWWPKE1YjFlWc6VTEVSN45CklWWf-uWmprQIyLtoPDA18tX9cFDr-aQ9S6/pubhtml
+  right:
+    - text: "View Report PDF"
+      href: PM566Report.pdf
 output:
   html_document:
     theme: cosmo

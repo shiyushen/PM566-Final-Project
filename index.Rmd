@@ -1,5 +1,5 @@
 ---
-title: "PM566 Final Project"
+title: "PM566 HW5"
 author: "Sherry Shen"
 output: 
     html_document:
@@ -8,9 +8,7 @@ output:
 ---
 <br>
 
-This is my PM566 Final Project website.
-
-<br>
+This is my PM566 HW5 website.
 
 ```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
 library(data.table)
@@ -33,72 +31,55 @@ opts_chunk$set(
   out.width = "700px")
 ```
 
-<br>
-
-## First step
-
-First I will source any necessary code.
-
 ```{r load-data, echo=FALSE}
-source("process_COVID_data.R")
+source("process_HW5.R")
 ```
 
 <br>
 
-## Second step
+# Plot of number of new cases vs date outside of China
 
-I will add some code to create...
+```{r}
+#remove data that do not have number of case record
+newcase_data=new[-(which(is.na(new$case_in_country))),c(2,3,5)]
+dim(newcase_data)
 
-```{r plot1, class.source="code-rsmall"}
-p1_scatter <- cv_states_today %>% 
-  plot_ly(x = ~pop_density, y = ~deathsper100k,
-          type = 'scatter', mode = 'markers', color = ~state,
-          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
-          hoverinfo = 'text',
-          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
-                        deathsper100k, sep=""), sep = "<br>")) %>%
-  layout(title = "Population-normalized COVID-19 deaths vs. population density",
-                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
-         hovermode = "compare")
+#compute new cases for each country
+a=as.data.frame(table(newcase_data$`reporting date`))
 
-# filter out "District of Columbia"
-cv_states_today_scatter <- cv_states_today %>% filter(state!="District of Columbia")
-
-p2_scatter <- cv_states_today_scatter %>% 
-  plot_ly(x = ~pop_density, y = ~deathsper100k,
-          type = 'scatter', mode = 'markers', color = ~state,
-          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
-          hoverinfo = 'text',
-          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
-                        deathsper100k, sep=""), sep = "<br>")) %>%
-  layout(title = "Population-normalized COVID-19 deaths vs. population density",
-                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
-         hovermode = "compare")
+a %>% 
+  plot_ly(x = ~Var1, y = ~Freq, type = "scatter", mode = "lines") %>%
+  layout(xaxis = list(title="Date"), yaxis = list(title="Number of cases"), title = "Number of new cases outside of China")
 ```
+
+From the plot we can see that, at the beginning 2 months of the COVID-29 pandemic, number of new cases outside of China is increasing as time increase. It can tell us that the virus has already been spread out around the world. 
+<br>
+
+# Evaluate the length of incubation period. 
+
+```{r}
+new %>% plot_ly(y = ~exposure_start, type = "box", name = "Exposure Start Date") %>% 
+  add_trace(y = ~symptom_onset, type = "box", name = "Symptom_onset Date")
+
+```
+
+We can see there is around 14 days between the median of symptom onset date and exposure start date, which is the same as the incubation period of the COVID-19 virus. 
 
 <br>
 
-## Third steps {.tabset}
+# Plot of the COVID cases outside of China
 
-creat tabs to display each figure
-
-## scatterplot: with DC
-
-```{r  p1}
-p1_scatter
+```{r}
+b=as.data.frame(table(newcase_data$country))
+b %>%
+  group_by(Var1) %>%
+  plot_ly(labels = ~ Var1, values = ~Freq, textposition = "inside") %>%
+  add_pie(hole = 0.6) %>%
+  layout(title = "Donus Chatrt of total numbe cases outside of China")
+        
 ```
 
-### scatterplot: without DC
-
-```{r p2}
-p2_scatter
-```
-
-##{-}
-
-<br>
-
-Done!
+We can see that, countries who have large number of new cases are those located around China. This can well explain that China might be the original place of the COVID-19 virus. 
 
 <br>
 <br>
