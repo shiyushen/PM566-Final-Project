@@ -65,7 +65,7 @@ kable(table1,caption = "Table1.1 Description of COVID-19 data set",col.names = c
 ```
 <br>
 
-# Data Cleaning Steps
+# Methods: Data Cleaning 
 
 
 1. If a row has all NA in most of the columns, it will be deleted; 
@@ -86,7 +86,7 @@ kable(table1,caption = "Table1.1 Description of COVID-19 data set",col.names = c
   
 <br>  
 
-# Interactive plots
+# Results
 
 1. Plot of number of new cases vs date outside of China
 
