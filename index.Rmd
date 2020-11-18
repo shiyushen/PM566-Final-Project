@@ -1,14 +1,11 @@
 ---
-title: "PM566 HW5"
+title: "PM566 Final Project"
 author: "Sherry Shen"
 output: 
     html_document:
         toc: TRUE
         toc_float: TRUE
 ---
-<br>
-
-This is my PM566 HW5 website.
 
 ```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
 library(data.table)
@@ -35,14 +32,67 @@ opts_chunk$set(
 source("process_HW5.R")
 ```
 
+<br> 
+
+# Introduction
+
+
+When talking about 2020, "COVID-19", a novel coronavirus firstly found in Wuhan, China, in the end of 2019 (Mclntosh, 2020), must be the most popular word that appears on the Internet, newspapers and daily conversations. Since COVID-19 has been discovered and claimed as human pandemic by Chinese government, there are more than 36 millions of people being confirmed with COVID-19 and about 1 million deaths by now (2020). COVID-19 is definitely raising a huge concern of public health around the world. 
+
+The COVID 19 data set consisits of 17 variables and 1085 observations.
+
+```{r, echo = FALSE }
+library(knitr)
+library(data.table)
+library(kableExtra)
+table1=data.table(
+  matrix(c(
+    "id","case_in_county","reporting date","summary","location",
+    "country","gender","age","sympton_onset","if_onset_approximated",
+    "hosp_visit_date","exposure_start","exposure_end","visiting Wuhan",
+    "from Wuhan","death",
+    "recovered","symptom","source","link",
+    "Patient ID","Number of case in county","Case reporting date",
+    "Patient summary discription","Location",
+    "Country","Gender","Age","Sympton onset date",
+    "Whether symptom onset is approximated", "hospotal visiting date",
+    "Exposure start date","Exposure end date",
+    "Whether the patient visted Wuhan", "Whether the patient is from Wuhan",
+    "Whether the patient died", "Whether the patient recovered","Symptom",
+    "Source of the patient's information"," Source link"),nrow=20,byrow=F))
+kable(table1,caption = "Table1.1 Description of COVID-19 data set",col.names = c('Variable Name', 'Discription'))
+
+```
 <br>
 
-# Plot of number of new cases vs date outside of China
+# Data Cleaning Steps
 
-```{r}
+
+1. If a row has all NA in most of the columns, it will be deleted; 
+
+2. Missing values in "location", "gender" and "country" will not be imputed; 
+
+3. Missing values in "age" will be generated using the mean of "age";
+
+4. Missing values in "hosp visit date" will be imputed by it's "reporting date"; 
+
+5. Missing value in "symptom onset date" will be imputed by the average of the difference between "symptom onset data" and "hosp visit date"; 
+
+6. Missing value in "exposure start data" will be imputed by the average of the difference between "exposure start data" and "symptom onset date"; 
+
+7. Missing value in "exposure end data" will be imputed by "hosp visit data". 
+
+8. Missing value in "symptoms" will be imputed by the most frequent symptoms. 
+  
+<br>  
+
+# Interactive plots
+
+1. Plot of number of new cases vs date outside of China
+
+```{r, echo = FALSE}
 #remove data that do not have number of case record
 newcase_data=new[-(which(is.na(new$case_in_country))),c(2,3,5)]
-dim(newcase_data)
 
 #compute new cases for each country
 a=as.data.frame(table(newcase_data$`reporting date`))
@@ -55,9 +105,9 @@ a %>%
 From the plot we can see that, at the beginning 2 months of the COVID-29 pandemic, number of new cases outside of China is increasing as time increase. It can tell us that the virus has already been spread out around the world. 
 <br>
 
-# Evaluate the length of incubation period. 
+2. Box plot of exposure start date and sympton onset date. 
 
-```{r}
+```{r, echo = FALSE}
 new %>% plot_ly(y = ~exposure_start, type = "box", name = "Exposure Start Date") %>% 
   add_trace(y = ~symptom_onset, type = "box", name = "Symptom_onset Date")
 
@@ -67,9 +117,9 @@ We can see there is around 14 days between the median of symptom onset date and 
 
 <br>
 
-# Plot of the COVID cases outside of China
+3. Plot of the COVID cases outside of China
 
-```{r}
+```{r, echo = FALSE}
 b=as.data.frame(table(newcase_data$country))
 b %>%
   group_by(Var1) %>%
