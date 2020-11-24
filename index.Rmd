@@ -1,5 +1,5 @@
 ---
-title: "PM566 Final Project"
+title: "Covid-19: Characteristic Analysis"
 author: "Sherry Shen"
 output: 
     html_document:
