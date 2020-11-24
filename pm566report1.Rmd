@@ -1,0 +1,249 @@
+---
+title: "COVID-19 Virus: Analysis of Chararcteristics "
+author: "Shiyu Shen" 
+output: pdf_document
+indent: true
+---
+
+```{r, echo = FALSE, include = FALSE}
+library(knitr)
+library(data.table)
+library(kableExtra)
+library(jiebaR)
+library(jiebaRD)
+library(wordcloud2)
+library(webshot)
+library(htmlwidgets)
+library(ggplot2)
+
+```
+<br>
+
+## 1 Introduction
+### 1.1 Backgroud
+
+  When talking about 2020, "COVID-19", a novel coronavirus firstly found in Wuhan, China, in the end of 2019 (Mclntosh, 2020), must be the most popular word that appears on the Internet, newspapers and daily conversations. Since COVID-19 has been discovered and claimed as human pandemic by Chinese government, there are more than 36 millions of people being confirmed with COVID-19 and about 1 million deaths by now (2020). COVID-19 is definitely raising a huge concern of public health around the world. 
+ 
+### 1.2 Problem Statement
+
+  When facing a new virus, people usually care about its characteristics. It is clinically important to have a overview about the virus. Thus this report is going to analyze basic characterisistics of COVID-19 virus by addressing the following 3 questions:
+1. What is the incubation period of CHOVID-19? 
+2. What are some of the most popular symptoms for COVID-19?
+3. Is China the original place for COVID-19? 
+
+### 1.3 Data Discription
+  
+  This data is obtained from Kaggle: Novel Corona Virus 2019 Data set. These COVID-19 case data are collected from 20th January to 28th February, 2020, which is the early pandemic period of COVID-19. This data set consists of 10 qualitative attributes, 7 quantitative attributes and 3 other attributes (Table1.1). 
+  
+```{r, echo = FALSE }
+
+table1=data.table(
+  matrix(c(
+    "id","case_in_county","reporting date","summary","location",
+    "country","gender","age","sympton_onset","if_onset_approximated",
+    "hosp_visit_date","exposure_start","exposure_end","visiting Wuhan",
+    "from Wuhan","death",
+    "recovered","symptom","source","link",
+    "Patient ID","Number of case in county","Case reporting date",
+    "Patient summary discription","Location",
+    "Country","Gender","Age","Sympton onset date",
+    "Whether symptom onset is approximated", "hospotal visiting date",
+    "Exposure start date","Exposure end date",
+    "Whether the patient visted Wuhan", "Whether the patient is from Wuhan",
+    "Whether the patient died", "Whether the patient recovered","Symptom",
+    "Source of the patient's information"," Source link"),nrow=20,byrow=F))
+kable(table1,caption = "Table1.1 Description of COVID-19 data set",col.names = c('Variable Name', 'Description'))
+
+```
+<br>
+
+## 2 Methodology
+
+  The data set used in this report is downloaded from a Kaggle webpage. It offers day-level information and data set on COVID-19 affected cases. The first step to deal with this data set is to clean it. Specifically, the following method will be used: 
+  
+1. If a row has all NA in most of the columns, it will be deleted; 
+
+2. Missing values in "location", "gender" and "country" will not be imputed; 
+
+3. Missing values in "age" will be generated using the mean of "age";
+
+4. Missing values in "hosp visit date" will be imputed by it's "reporting date"; 
+
+5. Missing value in "symptom onset date" will be imputed by the average of the difference between "symptom onset data" and "hosp visit date"; 
+
+6. Missing value in "exposure start data" will be imputed by the average of the difference between "exposure start data" and "symptom onset date"; 
+
+7. Missing value in "exposure end data" will be imputed by "hosp visit data". 
+
+  After cleaning the data set, incubation period of COVID-19 will be approximate by computing the difference between symptom onset data and exposure start date. Then, word cloud technique will be used to analyze the symptoms of COVID-19. Last, number of new COVID-19 cases in countries outside of China will be computed and ranked. This will help to see how new cases is located around the world. 
+
+<br>
+
+## 3 Results
+
+  In the beginning, 3 descriptive variables "summary", "source" and "link" will be excluded and the main data set will have 17 variables and 1085 observations.The following table listed some descriptive statistics about main variables in COVID-19 data set. 
+  
+```{r, echo=FALSE, results='hide', include=FALSE}
+covid <- fread("/Users/sherryshen/Desktop/COVID19-data.csv")
+covid <- covid[,-c(4,19,20)] #remove 3 descriptive variables
+dim(covid) #check dimension
+
+table(covid$gender)
+table(covid$country)
+summary(covid$age)
+table(covid$If_onset_approximated)
+table(covid$`visiting Wuhan`)
+table(covid$`from Wuhan`)
+table(covid$death)
+table(covid$recovered)
+table(covid$symptom)
+
+
+sum(is.na(covid[,1]))
+sum(is.na(covid[,2]))
+sum(is.na(covid[,3]))
+sum(is.na(covid[,4]))
+sum(is.na(covid[,5]))
+sum(is.na(covid[,6]))
+sum(is.na(covid[,7]))
+sum(is.na(covid[,8]))
+sum(is.na(covid[,9]))
+sum(is.na(covid[,10]))
+sum(is.na(covid[,11]))
+sum(is.na(covid[,12]))
+sum(is.na(covid[,13]))
+sum(is.na(covid[,14]))
+sum(is.na(covid[,15]))
+sum(is.na(covid[,16]))
+sum(is.na(covid[,17]))
+
+```
+
+```{r, echo=FALSE, message=FALSE}
+table2=data.table(
+  matrix(c(
+    "country","gender","age",
+    "if_onset_approximated","visiting Wuhan",
+    "from Wuhan","death","recovered","symptom",
+    "38 countries","F/M=382/520","Min:25 Max:96 Mean:49.48",
+    "Yes:24 No:536","Yes:192 No 893","Yes:156 No:925",
+    "Yes:63, No:1022","Yes:159 No:926","",183,242,222,
+    577,"",4,"","",815 ),nrow=9,byrow=F))
+
+kable(table2,caption = "Table3.1 Descriptive statistics of main variables in COVID-19 data set",col.names = c('Variable Name','Obs/frequency','#NA'))
+```
+
+
+```{r, echo=FALSE, message=FALSE ,results='hide'}
+#1
+which(is.na(covid$`reporting date`))
+covid[which(is.na(covid$`reporting date`)),] #all other attribute are NA
+new = covid[-262,] #delete it
+
+sum(is.na(new$`reporting date`))
+
+#3
+mean_age = round(mean(covid$age,na.rm=T))
+new[, age2 :=age]
+
+for (i in 1:1084) {
+  if (is.na(new$age[i]==T)){new$age2[i]=mean_age}
+  else {new$age2[i]=new$age[i]}
+}
+
+sum(is.na(new$age2)) #check if there are NA
+
+#4 Missing values in "hosp visit date" will be imputed by it's "reporting date"; 
+new[,c(3,8,10,11,12)]<-lapply(new[,c(3,8,10,11,12)],as.Date)
+
+new$hosp_visit_date[is.na(new$hosp_visit_date)] <- 
+       new$`reporting date`[is.na(new$hosp_visit_date)]
+
+sum(is.na(new$hosp_visit_date))
+
+#5 hosp-symonset
+
+library(lubridate)
+library(zoo)
+
+new1=new[-(which(is.na(new$symptom_onset))),]
+dim(new1)
+hos_sym_diff=days(rep(0,563))
+hos_sym_diff=as.Date(new1$hosp_visit_date)-as.Date(new1$symptom_onset)
+mean_diff1=round(mean(hos_sym_diff)) #mean diff is 4 
+new$symptom_onset[is.na(new$symptom_onset)] <- 
+       as.Date(new$hosp_visit_date[is.na(new$symptom_onset)])+days(4)
+
+sum(is.na(new$symptom_onset))
+
+
+#6 Missing value in "exposure start data" will be imputed by the average of the difference between "exposure start data" and "symptom onset date"; 
+
+new2=new[-(which(is.na(new$exposure_start))),]
+dim(new2)
+sym_exps_diff=days(rep(0,128))
+sym_exps_diff=as.Date(new2$symptom_onset)-as.Date(new2$exposure_start)
+mean_diff2=round(mean(sym_exps_diff)) #mean diff is 12
+new$exposure_start[is.na(new$exposure_start)] <- 
+       as.Date(new$symptom_onset[is.na(new$exposure_start)])-days(12)
+
+sum(is.na(new$exposure_start))
+
+
+#7 Missing value in "exposure end data" will be imputed by "hosp visit data".
+
+new$exposure_end[is.na(new$exposure_end)] <- 
+       as.Date(new$hosp_visit_date[is.na(new$exposure_end)])
+
+sum(is.na(new$exposure_end))
+
+
+```
+
+
+Using the cleaned data set, we draw a box plot to compare the medians of exposure start date and symptom onset date. 
+
+```{r, echo=FALSE, message=FALSE ,results='hide',include=FALSE}
+
+p1 <- ggplot(data=new, aes(y=symptom_onset))
+p1 + geom_boxplot()+ggsave("onset.pdf",width = 3, height = 3)
+
+p2 <- ggplot(data=new, aes(y=exposure_start))
+p2 + geom_boxplot()+ggsave("exp.pdf",width = 3, height = 3)
+
+#remove data that do not have number of case record
+newcase_data=new[-(which(is.na(new$case_in_country))),c(2,3,5)]
+
+#compute new cases for each country
+b=as.data.frame(table(newcase_data$country))
+ggplot(b,aes(x="", y=Freq, fill = Var1)) +
+   geom_bar(width = 1, stat = "identity", color = "white") +
+   coord_polar("y", start = 0)+
+   ggsave("country.pdf")
+```
+
+![onset](onset.pdf)  ![exp](exp.pdf)
+
+<br>
+
+  As you can see, the median date of the exposure start date for the patients are around Jan 26th; the median date of the exposure start date for the patients are around Feb 9th. The median difference is around 14 days, which tells us the incubation period for COVID-19 is around 14 days. Then, a pie chart of new COVID-19 cases is drawn. We can see that, Japan, Singapore, South Korean and Hong Kong composed large part of the new cases in countries outside of China. Last, a word cloud is drawn to show the symptoms collected from patients. Within those symptoms, fever, cough and sore throat are 3 main symptoms that shows up frequently from patients.
+![donut](country.pdf)
+
+```{r, echo=FALSE, message=FALSE ,results='hide',include=FALSE}
+covid <- read.csv("/Users/sherryshen/Desktop/COVID19-data.csv")
+text <- covid[-(which(is.na(covid$symptom))),'symptom']
+mixseg<- worker("mix")  
+a<- segment(text,mixseg) 
+freq <- table(a)
+my_graph <- wordcloud2(freq, shape = 'star', size = 1.5)
+saveWidget(my_graph, "tmp.html", selfcontained = F)
+webshot("tmp.html", "fig1.pdf", delay = 10, vwidth = 800, vheight = 800)
+
+```
+
+![wordcloud](fig1.pdf)
+
+
+## Conclusion
+
+  First, we found that the difference between the date of exposure and date of symptom onset is around 14 days. This results is consistent with the claimed incubation period of COVID-19. Second, fever and cough are the most frequent symptoms that shows up on the word cloud, which explained how these symptoms are considered as main symptoms of COVID-19 when inspecting the potential patient. Last, countries that we found having large percentage of new cases those countries who are closely located around and closely related with China, which indicate that China is the most possible original place for COVID-19 virus. 
